@@ -91,6 +91,9 @@ def findBestFitSlope(aList, start, stop, xAttribute, yAttribute):
     
     
 # Start of program
+print("S & P 500: ^GSPC")
+print("Nasdaq: ^IXIC")
+print("Russell 2000: ^RUT")
 stockSymbol = input("Enter stock symbol:")
 startDate = input("Start date (yyyy-mm-dd):")
 endDate = input("End date (yyyy-mm-dd):")
