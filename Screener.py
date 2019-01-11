@@ -92,6 +92,7 @@ def findBestFitSlope(aList, start, stop, xAttribute, yAttribute):
     
 # Start of program
 print("S & P 500: ^GSPC")
+print("NYSE: ^NYA")
 print("Nasdaq: ^IXIC")
 print("Russell 2000: ^RUT")
 stockSymbol = input("Enter stock symbol:")
@@ -135,6 +136,13 @@ for i, tradingDay in enumerate(tradingDays):
         tradingDays[i]['LastStochastic'] = 100 * (tradingDays[i]['Close'] - lowestLow39) / (highestHigh39 - lowestLow39)
     else:
         tradingDays[i]['LastStochastic'] = 0
+        
+    # calc last stochastic best fit
+    if i >= obvBestFitNumPeriods:
+        lastStochasticBestFitSlope = findBestFitSlope(tradingDays, i - (obvBestFitNumPeriods - 1), i, 'Period', 'LastStochastic')
+        tradingDays[i]['LastStoSlope'] = lastStochasticBestFitSlope
+    else:
+        tradingDays[i]['LastStoSlope'] = 0
 
 
 #determine buy and sell signals
@@ -143,6 +151,7 @@ for m, tradingDay in enumerate(tradingDays):
     
     if (m > 0 and 
         tradingDays[m]['LastStochastic'] > tradingDays[m - 1]['LastStochastic'] and 
+        #tradingDays[m]['LastStoSlope'] > 0 and
         tradingDays[m]['OBVSlope'] > 0
         #tradingDay['LastStochastic'] > buySignal and 
         #tradingDays[m - 1]['LastStochastic'] < buySignal and 
@@ -152,6 +161,7 @@ for m, tradingDay in enumerate(tradingDays):
         
     if (m > 0 and 
         tradingDays[m]['LastStochastic'] < tradingDays[m - 1]['LastStochastic'] and 
+        #tradingDays[m]['LastStoSlope'] < 0 and
         tradingDays[m]['OBVSlope'] < 0
         #tradingDay['LastStochastic'] < sellSignal and 
         #tradingDay['OBV'] < tradingDay['OBV' + str(obvSignal) + 'Avg']
@@ -159,8 +169,8 @@ for m, tradingDay in enumerate(tradingDays):
         buySell = 'SELL'
         
     tradingDays[m]['Buy/Sell'] = buySell
-        
-    print('Period:' + str(tradingDay['Period']) + ', Date:' + tradingDay['Date'] + ', Last:' + str(round(tradingDay['Close'], 2)) + ', Vol:' + str(tradingDay['Volume']) + ', LastSto:' + str(round(tradingDay['LastStochastic'], 1)) + ', OBV:' + str(tradingDay['OBV']) + ', OBVAvg:' + str(tradingDay['OBV' + str(obvSignal) + 'Avg']) + ', OBVSlope:' + str(tradingDay['OBVSlope']) + ', B/S:' + buySell)
+
+    print('Period:' + str(tradingDay['Period']) + ', Date:' + tradingDay['Date'] + ', Last:' + str(round(tradingDay['Close'], 2)) + ', Vol:' + str(tradingDay['Volume']) + ', LastSto:' + str(round(tradingDay['LastStochastic'], 1)) + ', StoSlope:' + str(round(tradingDay['LastStoSlope'], 1)) + ', OBV:' + str(tradingDay['OBV']) + ', OBVSlope:' + str(tradingDay['OBVSlope']) + ', B/S:' + buySell)
 
 '''
 keys = tradingDays[0].keys()
