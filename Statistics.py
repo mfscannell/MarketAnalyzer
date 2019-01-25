@@ -12,15 +12,15 @@ def findSimpleAverage(aList, start, stop, attribute = ''):
 def findBestFitSlope(aList, start, stop, xAttribute, yAttribute):
     bestFitSlope = 0
     
-    averageX = findSimpleAverage(tradingDays, start, stop, xAttribute)
-    averageY = findSimpleAverage(tradingDays, start, stop, yAttribute)
+    averageX = findSimpleAverage(aList, start, stop, xAttribute)
+    averageY = findSimpleAverage(aList, start, stop, yAttribute)
     denominator = 0
     numerator = 0
     
     for i in range(start, stop + 1):
-        denominator = denominator + (tradingDays[i][xAttribute] - averageX) ** 2
+        denominator = denominator + (aList[i][xAttribute] - averageX) ** 2
         
     for i in range(start, stop + 1):
-        numerator = numerator + (tradingDays[i][xAttribute] - averageX) * (tradingDays[i][yAttribute] - averageY)
+        numerator = numerator + (aList[i][xAttribute] - averageX) * (aList[i][yAttribute] - averageY)
     
     return numerator / denominator
