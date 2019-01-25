@@ -1,49 +1,20 @@
 from py_finance import YahooFinanceClient
+from py_finance import TechnicalAnalysis
+import Statistics
 import csv
 from statistics import mean
 
 buySignal = 20
 sellSignal = 80
-obvSignal = 10
-lastStochasticNumPeriods = 39
+
+obvSMANumPeriods = 5
 obvBestFitNumPeriods = 5
 
-def findLowestLow(tradingDaysList, start, stop, attribute = ''):
-    lowestLow = 0
-    
-    if attribute == '':
-        lowestLow = tradingDaysList[start]
-    else:
-        lowestLow = tradingDaysList[start][attribute]
-    
-    for i in range(start, stop + 1):
-        if attribute == '':
-            if tradingDaysList[i] < lowestLow:
-                lowestLow = tradingDaysList[i]
-        else:
-            if tradingDaysList[i][attribute] < lowestLow:
-                lowestLow = tradingDaysList[i][attribute]
-            
-    return lowestLow
-    
-def findHighestHigh(tradingDaysList, start, stop, attribute = ''):
-    highestHigh = 0
-    
-    if attribute == '':
-        highestHigh = tradingDaysList[start]
-    else:
-        highestHigh = tradingDaysList[start][attribute]
-    
-    for i in range(start, stop + 1):
-        if attribute == '':
-            if tradingDaysList[i] > highestHigh:
-                highestHigh = tradingDaysList[i]
-        else:
-            if tradingDaysList[i][attribute] > highestHigh:
-                highestHigh = tradingDaysList[i][attribute]
-            
-    return highestHigh
-    
+adBestFitNumPeriods = 5
+
+slowStochasticNumPeriods = 39
+slowStochasticBestFitNumPeriods = 5
+
 # Find the simple average of all items in the list from index start to index stop inclusive
 def findSimpleAverage(aList, start, stop, attribute = ''):
     sum = 0
@@ -95,6 +66,7 @@ print("S & P 500: ^GSPC")
 print("NYSE: ^NYA")
 print("Nasdaq: ^IXIC")
 print("Russell 2000: ^RUT")
+print("VIX: ^VIX")
 stockSymbol = input("Enter stock symbol:")
 startDate = input("Start date (yyyy-mm-dd):")
 endDate = input("End date (yyyy-mm-dd):")
@@ -102,18 +74,17 @@ endDate = input("End date (yyyy-mm-dd):")
 stockClient = YahooFinanceClient.YahooFinanceClient(stockSymbol)
 tradingDays = stockClient.getHistory(startDate, endDate)
 
+vixTradingDays = []
+
+vixStockClient = YahooFinanceClient.YahooFinanceClient("^VIX")
+
+if stockSymbol != "^VIX":
+    vixTradingDays = vixStockClient.getHistory(startDate, endDate)
+
 
 
 for i, tradingDay in enumerate(tradingDays):
-    # calc OBV
-    if i == 0:
-        tradingDays[i]['OBV'] = tradingDays[i]['Volume']
-    elif tradingDays[i]['Close'] > tradingDays[i - 1]['Close']:
-        tradingDays[i]['OBV'] = tradingDays[i - 1]['OBV'] + tradingDays[i]['Volume']
-    elif tradingDays[i]['Close'] < tradingDays[i - 1]['Close']:
-        tradingDays[i]['OBV'] = tradingDays[i - 1]['OBV'] - tradingDays[i]['Volume']
-    elif tradingDays[i]['Close'] == tradingDays[i - 1]['Close']:
-        tradingDays[i]['OBV'] = tradingDays[i - 1]['OBV']
+    tradingDays[i]['OBV'] = TechnicalAnalysis.calcOBV(tradingDays, i)
         
     # calc OBV best fit slope
     if i >= obvBestFitNumPeriods:
@@ -122,27 +93,57 @@ for i, tradingDay in enumerate(tradingDays):
     else:
         tradingDays[i]['OBVSlope'] = 0
     
-    
     # calc OBV avgs
-    if i >= obvSignal:
-        tradingDays[i]['OBV' + str(obvSignal) + 'Avg'] = findSimpleAverage(tradingDays, i - (obvSignal - 1), i, 'OBV')
+    if i >= obvSMANumPeriods:
+        tradingDays[i]['OBV' + str(obvSMANumPeriods) + 'Avg'] = findSimpleAverage(tradingDays, i - (obvSMANumPeriods - 1), i, 'OBV')
     else:
-        tradingDays[i]['OBV' + str(obvSignal) + 'Avg'] = 0
+        tradingDays[i]['OBV' + str(obvSMANumPeriods) + 'Avg'] = 0
 
-    # calc last stochastic
-    if i >= lastStochasticNumPeriods:
-        lowestLow39 = findLowestLow(tradingDays, i - (lastStochasticNumPeriods - 1), i, 'Low')
-        highestHigh39 = findHighestHigh(tradingDays, i - (lastStochasticNumPeriods - 1), i, 'High')
-        tradingDays[i]['LastStochastic'] = 100 * (tradingDays[i]['Close'] - lowestLow39) / (highestHigh39 - lowestLow39)
+    tradingDays[i]['AD'] = TechnicalAnalysis.calcAccumDist(tradingDays, i)
+
+    # calc A/D best fit
+    if i >= adBestFitNumPeriods:
+        tradingDays[i]['ADSlope'] = findBestFitSlope(tradingDays, i - (adBestFitNumPeriods - 1), i, 'Period', 'AD')
     else:
-        tradingDays[i]['LastStochastic'] = 0
+        tradingDays[i]['ADSlope'] = 0
+
+    # calc slow stochastic
+    if i >= slowStochasticNumPeriods:
+        tradingDays[i]['SlowStochastic'] = TechnicalAnalysis.calcSlowStochastic(tradingDays, i - (slowStochasticNumPeriods - 1), i)
+    else:
+        tradingDays[i]['SlowStochastic'] = 0
         
-    # calc last stochastic best fit
-    if i >= obvBestFitNumPeriods:
-        lastStochasticBestFitSlope = findBestFitSlope(tradingDays, i - (obvBestFitNumPeriods - 1), i, 'Period', 'LastStochastic')
-        tradingDays[i]['LastStoSlope'] = lastStochasticBestFitSlope
+    # calc slow stochastic 1 day slope
+    if i >= 1:
+        tradingDays[i]['SlowSto1DaySlope'] = tradingDays[i]['SlowStochastic'] - tradingDays[i - 1]['SlowStochastic']
     else:
-        tradingDays[i]['LastStoSlope'] = 0
+        tradingDays[i]['SlowSto1DaySlope'] = 0
+        
+    # calc slow stochastic best fit
+    if i >= slowStochasticBestFitNumPeriods:
+        tradingDays[i]['SlowStoSlope'] = findBestFitSlope(
+        tradingDays, i - (slowStochasticBestFitNumPeriods - 1), i, 'Period', 'SlowStochastic')
+    else:
+        tradingDays[i]['SlowStoSlope'] = 0
+
+    #VIX stuff
+    if stockSymbol != "^VIX":
+        tradingDays[i]["VIXOpen"] = vixTradingDays[i]["Open"]
+        tradingDays[i]["VIXHigh"] = vixTradingDays[i]["High"]
+        tradingDays[i]["VIXLow"] = vixTradingDays[i]["Low"]
+        tradingDays[i]["VIXClose"] = vixTradingDays[i]["Close"]
+        
+        # calc slow stochastic
+        if i >= slowStochasticNumPeriods:
+            tradingDays[i]['VIXSlowStochastic'] = TechnicalAnalysis.calcSlowStochastic(vixTradingDays, i - (slowStochasticNumPeriods - 1), i)
+        else:
+            tradingDays[i]['VIXSlowStochastic'] = 0
+            
+        # calc slow stochastic 1 day slope
+        if i >= 1:
+            tradingDays[i]['VIXSlowSto1DaySlope'] = tradingDays[i]['VIXSlowStochastic'] - tradingDays[i - 1]['VIXSlowStochastic']
+        else:
+            tradingDays[i]['VIXSlowSto1DaySlope'] = 0
 
 
 #determine buy and sell signals
@@ -150,31 +151,24 @@ for m, tradingDay in enumerate(tradingDays):
     buySell = 'HOLD'
     
     if (m > 0 and 
-        tradingDays[m]['LastStochastic'] > tradingDays[m - 1]['LastStochastic'] and 
-        #tradingDays[m]['LastStoSlope'] > 0 and
-        tradingDays[m]['OBVSlope'] > 0
-        #tradingDay['LastStochastic'] > buySignal and 
-        #tradingDays[m - 1]['LastStochastic'] < buySignal and 
-        #tradingDay['OBV'] > tradingDay['OBV' + str(obvSignal) + 'Avg']
+        tradingDays[m]['SlowStochastic'] > tradingDays[m - 1]['SlowStochastic'] and 
+        tradingDays[m]['ADSlope'] > 0
        ):
         buySell = 'BUY'
         
     if (m > 0 and 
-        tradingDays[m]['LastStochastic'] < tradingDays[m - 1]['LastStochastic'] and 
-        #tradingDays[m]['LastStoSlope'] < 0 and
-        tradingDays[m]['OBVSlope'] < 0
-        #tradingDay['LastStochastic'] < sellSignal and 
-        #tradingDay['OBV'] < tradingDay['OBV' + str(obvSignal) + 'Avg']
+        tradingDays[m]['SlowStochastic'] < tradingDays[m - 1]['SlowStochastic'] and 
+        (tradingDays[m]['ADSlope'] < 0 or tradingDays[m]['OBVSlope'] < 0)
        ):
         buySell = 'SELL'
         
     tradingDays[m]['Buy/Sell'] = buySell
 
-    print('Period:' + str(tradingDay['Period']) + ', Date:' + tradingDay['Date'] + ', Last:' + str(round(tradingDay['Close'], 2)) + ', Vol:' + str(tradingDay['Volume']) + ', LastSto:' + str(round(tradingDay['LastStochastic'], 1)) + ', StoSlope:' + str(round(tradingDay['LastStoSlope'], 1)) + ', OBV:' + str(tradingDay['OBV']) + ', OBVSlope:' + str(tradingDay['OBVSlope']) + ', B/S:' + buySell)
+    print('Period:' + str(tradingDay['Period']) + ', Date:' + tradingDay['Date'] + ', Last:' + str(round(tradingDay['Close'], 2)) + ', Vol:' + str(tradingDay['Volume']) + ', SlowSto:' + str(round(tradingDay['SlowStochastic'], 1)) + ', OBVSlope:' + str(round(tradingDay['OBVSlope'], 1)) + ', ADSlope:' + str(round(tradingDay['ADSlope'], 1)) + ', B/S:' + buySell)
 
 '''
 keys = tradingDays[0].keys()
-with open('C:/temp/flashBackup/_stocks/historicalSPLast2007_2019BestFit.csv', 'w', newline = '') as output_file:
+with open('C:/temp/flashBackup/_stocks/WithVix.csv', 'w', newline = '') as output_file:
     dict_writer = csv.DictWriter(output_file, keys)
     dict_writer.writeheader()
     dict_writer.writerows(tradingDays)
