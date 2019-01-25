@@ -4,10 +4,6 @@ import Statistics
 import csv
 from statistics import mean
 
-buySignal = 20
-sellSignal = 80
-
-obvSMANumPeriods = 5
 obvBestFitNumPeriods = 5
 
 adBestFitNumPeriods = 5
