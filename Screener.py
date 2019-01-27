@@ -237,22 +237,25 @@ for m, tradingDay in enumerate(tradingDays):
                     actionToPerform = 'BUY'
     '''
     
-    '''
+    
     ### ORIGINAL ###
     if (m > 0 and 
-        tradingDays[m]['SlowStochastic'] > tradingDays[m - 1]['SlowStochastic'] and 
-        tradingDays[m]['AD5DaySlope'] > 0
+        tradingDays[m]['SlowSto1DaySlope'] > 0 and 
+        tradingDays[m]['VIX1DaySlope'] < 0 and
+        tradingDays[m]['AD4DaySlope'] > 0
        ):
         actionToPerform = 'BUY'
         
     if (m > 0 and 
-        tradingDays[m]['SlowStochastic'] < tradingDays[m - 1]['SlowStochastic'] and 
-        (tradingDays[m]['AD5DaySlope'] < 0 or tradingDays[m]['OBV5DaySlope'] < 0)
+        tradingDays[m]['SlowSto1DaySlope'] < 0 and 
+        tradingDays[m]['VIX1DaySlope'] > 0 and
+        tradingDays[m]['AD4DaySlope'] < 0
+        #(tradingDays[m]['AD3DaySlope'] < 0 or tradingDays[m]['OBV3DaySlope'] < 0)
        ):
         actionToPerform = 'SELL'
-    '''
-
     
+
+    '''
     ### HOPEFULLY BETTER ###
     if m > slowStochasticNumPeriods:
         if tradingDay['AD3DaySlope'] > 0 and tradingDay['OBV3DaySlope'] > 0:
@@ -269,7 +272,7 @@ for m, tradingDay in enumerate(tradingDays):
                 actionToPerform = 'BUY'
             elif tradingDay['SlowSto1DaySlope'] < 0 and tradingDay['VIX1DaySlope'] < 0:
                 actionToPerform = 'SELL'
-    
+    '''
     
     if lastAction == 'SELL' and actionToPerform == 'BUY':
         if not firstBuyEncountered:
@@ -296,6 +299,7 @@ for m, tradingDay in enumerate(tradingDays):
 print('First Buy Date:' + firstBuyDate)
 print('Last Sell Date:' + lastSellDate)
 print('Total Return:' + str(totalReturn))
+print('Annual Return:' + str(totalReturn ** (1 / 12)))
 print('Num transactions:' + str(numTransactions))
 print('Num sells:' + str(numTransactions / 2))
 print('Num positive sells:' + str(numPositiveTransactions))
