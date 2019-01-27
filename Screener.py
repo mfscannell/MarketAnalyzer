@@ -8,6 +8,8 @@ obvBestFitNumPeriods = 5
 
 adBestFitNumPeriods = 5
 
+bestFitNumPeriods = [3, 4, 5]
+
 slowStochasticNumPeriods = 39
 slowStochasticBestFitNumPeriods = 5
     
@@ -34,19 +36,21 @@ if stockSymbol != "^VIX":
 for i, tradingDay in enumerate(tradingDays):
     tradingDays[i]['OBV'] = TechnicalAnalysis.calcOBV(tradingDays, i)
         
-    # calc OBV best fit slope
-    if i >= obvBestFitNumPeriods:
-        tradingDays[i]['OBVSlope'] = Statistics.findBestFitSlope(tradingDays, i - (obvBestFitNumPeriods - 1), i, 'Period', 'OBV')
-    else:
-        tradingDays[i]['OBVSlope'] = 0
+    # calc OBV best fit slopes
+    for numPeriods in bestFitNumPeriods:
+        if i >= numPeriods:
+            tradingDays[i]['OBV' + str(numPeriods) + 'DaySlope'] = Statistics.findBestFitSlope(tradingDays, i - (numPeriods - 1), i, 'Period', 'OBV')
+        else:
+            tradingDays[i]['OBV' + str(numPeriods) + 'DaySlope'] = 0
 
     tradingDays[i]['AD'] = TechnicalAnalysis.calcAccumDist(tradingDays, i)
 
     # calc A/D best fit
-    if i >= adBestFitNumPeriods:
-        tradingDays[i]['ADSlope'] = Statistics.findBestFitSlope(tradingDays, i - (adBestFitNumPeriods - 1), i, 'Period', 'AD')
-    else:
-        tradingDays[i]['ADSlope'] = 0
+    for numPeriods in bestFitNumPeriods:
+        if i >= numPeriods:
+            tradingDays[i]['AD' + str(numPeriods) + 'DaySlope'] = Statistics.findBestFitSlope(tradingDays, i - (numPeriods - 1), i, 'Period', 'AD')
+        else:
+            tradingDays[i]['AD' + str(numPeriods) + 'DaySlope'] = 0
 
     # calc slow stochastic
     if i >= slowStochasticNumPeriods:
@@ -74,6 +78,14 @@ for i, tradingDay in enumerate(tradingDays):
         tradingDays[i]["VIXLow"] = vixTradingDays[i]["Low"]
         tradingDays[i]["VIXClose"] = vixTradingDays[i]["Close"]
         
+        # calc VIX slope
+        if i >= 1:
+            tradingDays[i]['VIX1DaySlope'] = tradingDays[i]['VIXClose'] - tradingDays[i - 1]['VIXClose']
+            tradingDays[i]['VIX1DayPercentSlope'] = 100 * tradingDays[i]['VIX1DaySlope'] / tradingDays[i - 1]['VIXClose']
+        else:
+            tradingDays[i]['VIX1DaySlope'] = 0
+            tradingDays[i]['VIX1DayPercentSlope'] = 0
+        
         # calc slow stochastic
         if i >= slowStochasticNumPeriods:
             tradingDays[i]['VIXSlowStochastic'] = TechnicalAnalysis.calcSlowStochastic(vixTradingDays, i - (slowStochasticNumPeriods - 1), i)
@@ -87,25 +99,208 @@ for i, tradingDay in enumerate(tradingDays):
             tradingDays[i]['VIXSlowSto1DaySlope'] = 0
 
 
+numTrades = 0
+totalReturn = 1
+lastAction = 'SELL'
+firstBuyEncountered = False
+firstBuyDate = ''
+lastSellDate = ''
+lastBuyPrice = 1
+lastSellPrice = 1
+numTransactions = 0
+numPositiveTransactions = 0
+
 #determine buy and sell signals
 for m, tradingDay in enumerate(tradingDays):
-    buySell = 'HOLD'
+    actionToPerform = 'HOLD'
     
+    '''
+    ### DECISION TREE ###
+    #1250 samples
+    if '2007' in tradingDay['Date'] or '2008' in tradingDay['Date'] or '2009' in tradingDay['Date'] or '2010' in tradingDay['Date'] or '2011' in tradingDay['Date'] or '2012' in tradingDay['Date'] or '2013' in tradingDay['Date'] or '2014' in tradingDay['Date'] or '2015' in tradingDay['Date'] or '2016' in tradingDay['Date'] or '2017' in tradingDay['Date'] or '2018' in tradingDay['Date']:
+    #if True:
+        #1250 samples
+        if tradingDay['SlowSto1DaySlope'] <= 1.543:
+            #727 samples
+            if tradingDay['SlowStochastic'] <= 82.074:
+                #402 samples
+                if tradingDay['VIX1DaySlope'] <= 0.905:
+                    #209 samples
+                    if tradingDay['AD3DaySlope'] <= -213516656:
+                        #112 samples
+                        if tradingDay['OBV3DaySlope'] <= -3445032448:
+                            actionToPerform = 'SELL'
+                        else:
+                            #69 samples
+                            if tradingDay['SlowStochastic'] <= 38.238:
+                                actionToPerform = 'BUY'
+                            else:
+                                actionToPerform = 'SELL'
+                    else:
+                        if tradingDay['VIX1DayPercentSlope'] <= -0.271:
+                            actionToPerform = 'BUY'
+                        else:
+                            if tradingDay['SlowStoSlope'] <= 7.548:
+                                actionToPerform = 'HOLD'
+                            else:
+                                actionToPerform = 'SELL'
+                else:
+                    #193 samples
+                    actionToPerform = 'SELL'
+            else:
+                #325 samples
+                if tradingDay['SlowStochastic'] <= 92.823:
+                    #175 samples
+                    if tradingDay['AD5DaySlope'] <= -244146440:
+                        #27 samples
+                        actionToPerform = 'HOLD'
+                    else:
+                        #148 samples
+                        if tradingDay['AD4DaySlope'] <= 728944448:
+                            #78 samples
+                            if tradingDay['VIXClose'] <= 10.73:
+                                actionToPerform = 'HOLD'
+                            else:
+                                #72 samples
+                                if tradingDay['AD3DaySlope'] <= -883062816:
+                                    actionToPerform = 'HOLD'
+                                else:
+                                    #54 samples
+                                    if tradingDay['OBV4DaySlope'] <= -683154976:
+                                        actionToPerform = 'SELL'
+                                    else:
+                                        actionToPerform = 'SELL'
+                        else:
+                            #70 samples
+                            if tradingDay['SlowStochastic'] <= 83.525:
+                                actionToPerform = 'SELL'
+                            else:
+                                #66 samples
+                                if tradingDay['SlowSto1DaySlope'] <= -1.767:
+                                    #56 samples
+                                    if tradingDay['OBV5DaySlope'] <= -1485398976:
+                                        actionToPerform = 'SELL'
+                                    else:
+                                        actionToPerform = 'HOLD'
+                                else:
+                                    actionToPerform = 'HOLD'
+                else:
+                    #150 samples DONE
+                    if tradingDay['OBV3DaySlope'] <= 278290000:
+                        #71 samples
+                        if tradingDay['VIXClose'] <= 10.92:
+                            actionToPerform = 'BUY'
+                        else:
+                            actionToPerform = 'HOLD'
+                    else:
+                        #79 samples
+                        if tradingDay['SlowStoSlope'] <= 2.108:
+                            actionToPerform = 'HOLD'
+                        else:
+                            actionToPerform = 'BUY'
+        else:
+            #507 samples
+            if tradingDay['SlowStochastic'] <= 83.911:
+                #299 samples
+                if tradingDay['AD3DaySlope'] <= -1375264832:
+                    #24 samples
+                    actionToPerform = 'HOLD'
+                else:
+                    #275 samples
+                    actionToPerform = 'BUY'
+            else:
+                #208 samples
+                if tradingDay['SlowStoSlope'] <= 3.314:
+                    #149 samples
+                    if tradingDay['SlowSto1DaySlope'] <= 8.093:
+                        #88 samples
+                        if tradingDay['SlowStochastic'] <= 99.488:
+                            #75 samples
+                            if tradingDay['OBV4DaySlope'] <= -1350478528:
+                                actionToPerform = 'SELL'
+                            else:
+                                actionToPerform = 'HOLD'
+                        else:
+                            actionToPerform = 'BUY'
+                    else:
+                        #61 samples
+                        if tradingDay['VIX1DayPercentSlope'] <= -7.211:
+                            actionToPerform = 'BUY'
+                        else:
+                            #33 samples
+                            if tradingDay['SlowSto1DaySlope'] <= 13.663:
+                                actionToPerform = 'BUY'
+                            else:
+                                actionToPerform = 'HOLD'
+                else:
+                    #59 samples
+                    actionToPerform = 'BUY'
+    '''
+    
+    '''
+    ### ORIGINAL ###
     if (m > 0 and 
         tradingDays[m]['SlowStochastic'] > tradingDays[m - 1]['SlowStochastic'] and 
-        tradingDays[m]['ADSlope'] > 0
+        tradingDays[m]['AD5DaySlope'] > 0
        ):
-        buySell = 'BUY'
+        actionToPerform = 'BUY'
         
     if (m > 0 and 
         tradingDays[m]['SlowStochastic'] < tradingDays[m - 1]['SlowStochastic'] and 
-        (tradingDays[m]['ADSlope'] < 0 or tradingDays[m]['OBVSlope'] < 0)
+        (tradingDays[m]['AD5DaySlope'] < 0 or tradingDays[m]['OBV5DaySlope'] < 0)
        ):
-        buySell = 'SELL'
-        
-    tradingDays[m]['Buy/Sell'] = buySell
+        actionToPerform = 'SELL'
+    '''
 
-    print('Period:' + str(tradingDay['Period']) + ', Date:' + tradingDay['Date'] + ', Last:' + str(round(tradingDay['Close'], 2)) + ', Vol:' + str(tradingDay['Volume']) + ', SlowSto:' + str(round(tradingDay['SlowStochastic'], 1)) + ', OBVSlope:' + str(round(tradingDay['OBVSlope'], 1)) + ', ADSlope:' + str(round(tradingDay['ADSlope'], 1)) + ', B/S:' + buySell)
+    
+    ### HOPEFULLY BETTER ###
+    if m > slowStochasticNumPeriods:
+        if tradingDay['AD3DaySlope'] > 0 and tradingDay['OBV3DaySlope'] > 0:
+            actionToPerform = 'BUY'
+        elif tradingDay['AD3DaySlope'] < 0 and tradingDay['OBV3DaySlope'] < 0:
+            actionToPerform = 'SELL'
+        elif tradingDay['AD3DaySlope'] > 0 and tradingDay['OBV3DaySlope'] < 0:
+            if tradingDay['SlowSto1DaySlope'] > 0 or tradingDay['VIX1DaySlope'] > 0:
+                actionToPerform = 'BUY'
+            elif tradingDay['SlowSto1DaySlope'] < 0 and tradingDay['VIX1DaySlope'] < 0:
+                actionToPerform = 'SELL'
+        elif tradingDay['AD3DaySlope'] < 0 and tradingDay['OBV3DaySlope'] > 0:
+            if tradingDay['SlowSto1DaySlope'] > 0 and tradingDay['VIX1DaySlope'] > 0:
+                actionToPerform = 'BUY'
+            elif tradingDay['SlowSto1DaySlope'] < 0 and tradingDay['VIX1DaySlope'] < 0:
+                actionToPerform = 'SELL'
+    
+    
+    if lastAction == 'SELL' and actionToPerform == 'BUY':
+        if not firstBuyEncountered:
+            firstBuyEncountered = True
+            firstBuyDate = tradingDay['Date']
+            
+        lastBuyPrice = (tradingDay['High'] + tradingDay['Low']) / 2
+        lastAction = 'BUY'
+        numTransactions = numTransactions + 1
+    elif lastAction == 'BUY' and actionToPerform == 'SELL':
+        lastSellPrice = (tradingDay['High'] + tradingDay['Low']) / 2
+        totalReturn = totalReturn * lastSellPrice / lastBuyPrice
+        lastAction = 'SELL'
+        numTransactions = numTransactions + 1
+        lastSellDate = tradingDay['Date']
+        
+        if lastSellPrice > lastBuyPrice:
+            numPositiveTransactions = numPositiveTransactions + 1
+        
+    tradingDays[m]['Buy/Sell'] = actionToPerform
+
+    print('Period:' + str(tradingDay['Period']) + ', Date:' + tradingDay['Date'] + ', Last:' + str(round(tradingDay['Close'], 2)) + ', Vol:' + str(tradingDay['Volume']) + ', SlowSto:' + str(round(tradingDay['SlowStochastic'], 1)) + ', OBV5DaySlope:' + str(round(tradingDay['OBV5DaySlope'], 1)) + ', AD5DaySlope:' + str(round(tradingDay['AD5DaySlope'], 1)) + ', B/S:' + tradingDay['Buy/Sell'])
+
+print('First Buy Date:' + firstBuyDate)
+print('Last Sell Date:' + lastSellDate)
+print('Total Return:' + str(totalReturn))
+print('Num transactions:' + str(numTransactions))
+print('Num sells:' + str(numTransactions / 2))
+print('Num positive sells:' + str(numPositiveTransactions))
+print('Percent positive sells:' + str(100 * numPositiveTransactions / (numTransactions / 2)))
+
 
 '''
 keys = tradingDays[0].keys()
