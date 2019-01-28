@@ -242,7 +242,7 @@ for m, tradingDay in enumerate(tradingDays):
     if (m > 0 and 
         tradingDays[m]['SlowSto1DaySlope'] > 0 and 
         tradingDays[m]['VIX1DaySlope'] < 0 and
-        tradingDays[m]['AD4DaySlope'] > 0
+        tradingDays[m]['AD3DaySlope'] > 0
        ):
         actionToPerform = 'BUY'
         
@@ -279,10 +279,12 @@ for m, tradingDay in enumerate(tradingDays):
             firstBuyEncountered = True
             firstBuyDate = tradingDay['Date']
             
+        #lastBuyPrice = tradingDay['Close']
         lastBuyPrice = (tradingDay['High'] + tradingDay['Low']) / 2
         lastAction = 'BUY'
         numTransactions = numTransactions + 1
     elif lastAction == 'BUY' and actionToPerform == 'SELL':
+        #lastSellPrice = tradingDay['Close']
         lastSellPrice = (tradingDay['High'] + tradingDay['Low']) / 2
         totalReturn = totalReturn * lastSellPrice / lastBuyPrice
         lastAction = 'SELL'
@@ -294,8 +296,10 @@ for m, tradingDay in enumerate(tradingDays):
         
     tradingDays[m]['Buy/Sell'] = actionToPerform
 
-    print('Period:' + str(tradingDay['Period']) + ', Date:' + tradingDay['Date'] + ', Last:' + str(round(tradingDay['Close'], 2)) + ', Vol:' + str(tradingDay['Volume']) + ', SlowSto:' + str(round(tradingDay['SlowStochastic'], 1)) + ', OBV5DaySlope:' + str(round(tradingDay['OBV5DaySlope'], 1)) + ', AD5DaySlope:' + str(round(tradingDay['AD5DaySlope'], 1)) + ', B/S:' + tradingDay['Buy/Sell'])
+    print('Period:' + str(tradingDay['Period']) + ', Date:' + tradingDay['Date'] + ', Last:' + str(round(tradingDay['Close'], 2)) + ', Vol:' + str(tradingDay['Volume']) + ', VIX:' + str(round(tradingDay['VIXClose'], 2)) + ', SlowSto:' + str(round(tradingDay['SlowStochastic'], 1)) + ', AD3DaySlope:' + str(round(tradingDay['AD3DaySlope'], 1)) + ', AD5DaySlope:' + str(round(tradingDay['AD5DaySlope'], 1)) + ', B/S:' + tradingDay['Buy/Sell'])
 
+
+'''
 print('First Buy Date:' + firstBuyDate)
 print('Last Sell Date:' + lastSellDate)
 print('Total Return:' + str(totalReturn))
@@ -304,7 +308,7 @@ print('Num transactions:' + str(numTransactions))
 print('Num sells:' + str(numTransactions / 2))
 print('Num positive sells:' + str(numPositiveTransactions))
 print('Percent positive sells:' + str(100 * numPositiveTransactions / (numTransactions / 2)))
-
+'''
 
 '''
 keys = tradingDays[0].keys()
