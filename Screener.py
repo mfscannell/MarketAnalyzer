@@ -249,8 +249,8 @@ for m, tradingDay in enumerate(tradingDays):
     if (m > 0 and 
         tradingDays[m]['SlowSto1DaySlope'] < 0 and 
         tradingDays[m]['VIX1DaySlope'] > 0 and
-        tradingDays[m]['AD4DaySlope'] < 0
-        #(tradingDays[m]['AD3DaySlope'] < 0 or tradingDays[m]['OBV3DaySlope'] < 0)
+        #tradingDays[m]['AD4DaySlope'] < 0
+        (tradingDays[m]['AD4DaySlope'] < 0 or tradingDays[m]['OBV4DaySlope'] < 0)
        ):
         actionToPerform = 'SELL'
     
@@ -295,9 +295,11 @@ for m, tradingDay in enumerate(tradingDays):
             numPositiveTransactions = numPositiveTransactions + 1
         
     tradingDays[m]['Buy/Sell'] = actionToPerform
+    
+    if m % 10 == 0:
+        print("      Date      Last       Vol    VIX  Stoch  Stoch5DaySlope        OBV  OBV3DaySlope  OBV4DaySlope         AD  AD3DaySlope  AD4DaySlope  Buy/Sell")
 
-    print('Period:' + str(tradingDay['Period']) + ', Date:' + tradingDay['Date'] + ', Last:' + str(round(tradingDay['Close'], 2)) + ', Vol:' + str(tradingDay['Volume']) + ', VIX:' + str(round(tradingDay['VIXClose'], 2)) + ', SlowSto:' + str(round(tradingDay['SlowStochastic'], 1)) + ', AD3DaySlope:' + str(round(tradingDay['AD3DaySlope'], 1)) + ', AD5DaySlope:' + str(round(tradingDay['AD5DaySlope'], 1)) + ', B/S:' + tradingDay['Buy/Sell'])
-
+    print(f"{tradingDay['Date']}  {'%8.2f' % tradingDay['Close']}  {'%.2e' % tradingDay['Volume']}  {'%5.2f' % tradingDay['VIXClose']}  {'%5.1f' % tradingDay['SlowStochastic']}  {'%14.1f' % tradingDay['SlowStoSlope']}  {'%9.2e' % tradingDay['OBV']}  {'%12.2e' % tradingDay['OBV3DaySlope']}  {'%12.2e' % tradingDay['OBV4DaySlope']}  {'%9.2e' % tradingDay['AD']}  {'%11.2e' % tradingDay['AD3DaySlope']}  {'%11.2e' % tradingDay['AD4DaySlope']}  {tradingDay['Buy/Sell'].rjust(8)}")
 
 '''
 print('First Buy Date:' + firstBuyDate)
@@ -309,6 +311,8 @@ print('Num sells:' + str(numTransactions / 2))
 print('Num positive sells:' + str(numPositiveTransactions))
 print('Percent positive sells:' + str(100 * numPositiveTransactions / (numTransactions / 2)))
 '''
+
+
 
 '''
 keys = tradingDays[0].keys()
