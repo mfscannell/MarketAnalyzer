@@ -9,9 +9,9 @@ os.environ["PATH"] += os.pathsep + 'C:/Program Files (x86)/Graphviz2.38/bin/'
 
 
 data = {}
-numColsIncludingY = 17
+numColsIncludingY = 22
 
-with open('ForTreeFinal10Day.csv', 'r') as f:
+with open('ForTreeFinal.csv', 'r') as f:
     rows = list(csv.reader(f, delimiter=','))
     dataArray = np.array(rows[1:], dtype=np.float)
     data['featureNames'] = rows[0][:numColsIncludingY - 1]

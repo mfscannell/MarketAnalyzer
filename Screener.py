@@ -131,8 +131,10 @@ for m, tradingDay in enumerate(tradingDays):
     if (m > 0 and 
         (
          ( #gradual declines
-          tradingDays[m]['SlowSto1DaySlope'] < -3 and 
-          tradingDays[m]['VIX1DayPercentSlope'] > 2.5 and
+          #tradingDays[m]['SlowSto1DaySlope'] < -3 and 
+          tradingDays[m]['VIX1DaySlope'] > 0.5 and
+          tradingDays[m]['SlowSto1DayPercentSlope'] < -3 and 
+          #tradingDays[m]['VIX1DayPercentSlope'] > 2.5 and
           #tradingDays[m]['AD5DaySlope'] < 0
           (tradingDays[m]['AD5DaySlope'] < 0 or tradingDays[m]['OBV5DaySlope'] < 0)
          ) 
