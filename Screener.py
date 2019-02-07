@@ -217,7 +217,7 @@ for m, tradingDay in enumerate(tradingDays):
        ):
         actionToPerform = 'SELL'
     '''
-    
+
     ### BOTH SELL ###
     if (m > 0 and 
         (
@@ -237,8 +237,6 @@ for m, tradingDay in enumerate(tradingDays):
         )
        ):
         actionToPerform = 'SELL'
-    
-        
         
     '''
     ### NEW SELL ###
@@ -292,10 +290,10 @@ for m, tradingDay in enumerate(tradingDays):
 
     #print(f"{tradingDay['Date']}  {'%8.2f' % tradingDay['Close']}  {'%.2e' % tradingDay['Volume']}  {'%5.2f' % tradingDay['VIXClose']}  {'%8.2f' % tradingDay['VIX1DayPercentSlope']}  {'%5.2f' % tradingDay['SlowStochastic']}  {'%8.2f' % tradingDay['SlowSto1DayPercentSlope']}  {'%9.1f' % tradingDay['SlowSto3DaySlope']}  {'%9.2e' % tradingDay['OBV']}  {'%9.2e' % tradingDay['OBV3DaySlope']}  {'%9.2e' % tradingDay['OBV5DaySlope']}  {'%9.2e' % tradingDay['AD']}  {'%9.2e' % tradingDay['AD3DaySlope']}  {'%9.2e' % tradingDay['AD5DaySlope']}  {tradingDay['Buy/Sell'].rjust(8)}")
 
-    if m % 10 == 0:
-        print("      Date     Last      Vol   VIX 1D%Slope 14DRSI 1DSlope 3DaySlope Stoch 1D%Slope 3DaySlope       OBV 3DaySlope 5DaySlope        AD 3DaySlope 5DaySlope Buy/Sell")
+    #if m % 10 == 0:
+    #    print("      Date     Last      Vol   VIX 1D%Slope 14DRSI 1DSlope 3DaySlope Stoch 1D%Slope 3DaySlope       OBV 3DaySlope 5DaySlope        AD 3DaySlope 5DaySlope Buy/Sell")
 
-    print(f"{tradingDay['Date']} {'%8.2f' % tradingDay['Close']} {'%.2e' % tradingDay['Volume']} {'%5.2f' % tradingDay['VIXClose']} {'%8.2f' % tradingDay['VIX1DayPercentSlope']} {'%6.2f' % tradingDay['14DayRSI']} {'%7.2f' % tradingDay['14DayRSI1DaySlope']} {'%9.1f' % tradingDay['14DayRSI3DaySlope']} {'%5.2f' % tradingDay['SlowStochastic']} {'%8.2f' % tradingDay['SlowSto1DayPercentSlope']} {'%9.1f' % tradingDay['SlowSto3DaySlope']} {'%9.2e' % tradingDay['OBV']} {'%9.2e' % tradingDay['OBV3DaySlope']} {'%9.2e' % tradingDay['OBV5DaySlope']} {'%9.2e' % tradingDay['AD']} {'%9.2e' % tradingDay['AD3DaySlope']} {'%9.2e' % tradingDay['AD5DaySlope']} {tradingDay['Buy/Sell'].rjust(8)}")
+    #print(f"{tradingDay['Date']} {'%8.2f' % tradingDay['Close']} {'%.2e' % tradingDay['Volume']} {'%5.2f' % tradingDay['VIXClose']} {'%8.2f' % tradingDay['VIX1DayPercentSlope']} {'%6.2f' % tradingDay['14DayRSI']} {'%7.2f' % tradingDay['14DayRSI1DaySlope']} {'%9.1f' % tradingDay['14DayRSI3DaySlope']} {'%5.2f' % tradingDay['SlowStochastic']} {'%8.2f' % tradingDay['SlowSto1DayPercentSlope']} {'%9.1f' % tradingDay['SlowSto3DaySlope']} {'%9.2e' % tradingDay['OBV']} {'%9.2e' % tradingDay['OBV3DaySlope']} {'%9.2e' % tradingDay['OBV5DaySlope']} {'%9.2e' % tradingDay['AD']} {'%9.2e' % tradingDay['AD3DaySlope']} {'%9.2e' % tradingDay['AD5DaySlope']} {tradingDay['Buy/Sell'].rjust(8)}")
 
 
 
