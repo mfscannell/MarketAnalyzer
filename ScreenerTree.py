@@ -9,9 +9,9 @@ os.environ["PATH"] += os.pathsep + 'C:/Program Files (x86)/Graphviz2.38/bin/'
 
 
 data = {}
-numColsIncludingY = 22
+numColsIncludingY = 26
 
-with open('ForTreeFinal.csv', 'r') as f:
+with open('ForTreeRSI.csv', 'r') as f:
     rows = list(csv.reader(f, delimiter=','))
     dataArray = np.array(rows[1:], dtype=np.float)
     data['featureNames'] = rows[0][:numColsIncludingY - 1]
@@ -62,7 +62,7 @@ graph = pydotplus.graph_from_dot_data(dot_data)
 #        dest = graph.get_node(str(edges[edge][i]))[0]
 #        dest.set_fillcolor(colors[i])
 
-graph.write_png('tree.png')
+graph.write_png('treeRSI.png')
 
 
 

@@ -1,3 +1,5 @@
+import Statistics
+
 # @summary Calculates the On Balance Volume for a trading day in a list of trading days.
 # @param tradingDays The list of trading days.
 # @param index The index in the list to find the OBV at.
@@ -63,8 +65,51 @@ def calcSlowStochastic(tradingDays, start, stop):
     
     return 100 * (tradingDays[stop]['Close'] - lowestLow) / (highestHigh - lowestLow)
         
+def calcRsi(tradingDays, index, numPeriods):
+    if index == 0:
+        tradingDays[index]['Gain'] = 0
+        tradingDays[index]['Loss'] = 0
+        tradingDays[index][f"{numPeriods}DayAvgGain"] = 0
+        tradingDays[index][f"{numPeriods}DayAvgLoss"] = 0
+        tradingDays[index][f"{numPeriods}DayRelativeStrength"] = 0
+        tradingDays[index][f"{numPeriods}DayRSI"] = 0
+    else:
+        if tradingDays[index]['Close'] > tradingDays[index - 1]['Close']:
+            tradingDays[index]['Gain'] = tradingDays[index]['Close'] - tradingDays[index - 1]['Close']
+            tradingDays[index]['Loss'] = 0
+        else:
+            tradingDays[index]['Gain'] = 0
+            tradingDays[index]['Loss'] = tradingDays[index - 1]['Close'] - tradingDays[index]['Close']
+            
+        if index < numPeriods:
+            tradingDays[index][f"{numPeriods}DayAvgGain"] = 0
+            tradingDays[index][f"{numPeriods}DayAvgLoss"] = 0
+            tradingDays[index][f"{numPeriods}DayRelativeStrength"] = 0
+            tradingDays[index][f"{numPeriods}DayRSI"] = 0
+        elif index == numPeriods:
+            tradingDays[index][f"{numPeriods}DayAvgGain"] = Statistics.findSimpleAverage(tradingDays, index - (numPeriods - 1), index, 'Gain')
+            tradingDays[index][f"{numPeriods}DayAvgLoss"] = Statistics.findSimpleAverage(tradingDays, index - (numPeriods - 1), index, 'Loss')
+            
+            if tradingDays[index][f"{numPeriods}DayAvgLoss"] > 0:
+                tradingDays[index][f"{numPeriods}DayRelativeStrength"] = tradingDays[index][f"{numPeriods}DayAvgGain"] / tradingDays[index][f"{numPeriods}DayAvgLoss"]
+                tradingDays[index][f"{numPeriods}DayRSI"] = 100 - 100 / (1 + tradingDays[index][f"{numPeriods}DayRelativeStrength"])
+            else:
+                tradingDays[index][f"{numPeriods}DayRelativeStrength"] = 1000000
+                tradingDays[index][f"{numPeriods}DayRSI"] = 100 - 100 / (1 + tradingDays[index][f"{numPeriods}DayRelativeStrength"])
+        else:
+            a = tradingDays[index - 1][f"{numPeriods}DayAvgGain"]
+            b = tradingDays[index]['Gain']
+            tradingDays[index][f"{numPeriods}DayAvgGain"] = ((numPeriods - 1) * a + b) / numPeriods
+            tradingDays[index][f"{numPeriods}DayAvgLoss"] = ((numPeriods - 1) * tradingDays[index - 1][f"{numPeriods}DayAvgLoss"] + tradingDays[index]['Loss']) / numPeriods
+    
+            if tradingDays[index][f"{numPeriods}DayAvgLoss"] > 0:
+                tradingDays[index][f"{numPeriods}DayRelativeStrength"] = tradingDays[index][f"{numPeriods}DayAvgGain"] / tradingDays[index][f"{numPeriods}DayAvgLoss"]
+                tradingDays[index][f"{numPeriods}DayRSI"] = 100 - 100 / (1 + tradingDays[index][f"{numPeriods}DayRelativeStrength"])
+            else:
+                tradingDays[index][f"{numPeriods}DayRelativeStrength"] = 1000000
+                tradingDays[index][f"{numPeriods}DayRSI"] = 100 - 100 / (1 + tradingDays[index][f"{numPeriods}DayRelativeStrength"])
         
-        
+
         
         
         
