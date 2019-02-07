@@ -217,7 +217,7 @@ for m, tradingDay in enumerate(tradingDays):
        ):
         actionToPerform = 'SELL'
     '''
-
+    
     ### BOTH SELL ###
     if (m > 0 and 
         (
