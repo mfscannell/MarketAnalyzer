@@ -8,7 +8,7 @@ obvBestFitNumPeriods = 5
 
 adBestFitNumPeriods = 5
 
-bestFitNumPeriods = [3, 4, 5]
+bestFitNumPeriods = [3, 4, 5, 10]
 
 slowStochasticNumPeriods = 39
 slowStochasticBestFitNumPeriods = 3
@@ -147,6 +147,30 @@ for m, tradingDay in enumerate(tradingDays):
     actionToPerform = 'HOLD'
     
     '''
+    ### TREE ATTEMPT ###
+    if tradingDays[m]['14DayRSI1DaySlope'] > 0:
+        if tradingDays[m]['SlowStochastic'] <= 83.911:
+            actionToPerform = 'BUY'
+        else:
+            if tradingDays[m]['14DayRSI3DaySlope'] <= 2.223:
+                if tradingDays[m]['SlowSto5DaySlope'] <= 3.775:
+                    actionToPerform = 'HOLD'
+                else:
+                    actionToPerform = 'BUY'
+            else:
+                actionToPerform = 'BUY'
+    
+    if tradingDays[m]['14DayRSI1DaySlope'] < 0:
+        if tradingDays[m]['SlowStochastic'] < 73:
+            actionToPerform = 'SELL'
+        else:
+            if tradingDays[m]['AD5DaySlope'] < 0:
+                actionToPerform = 'SELL'
+            else:
+                actionToPerform = 'HOLD'
+    '''
+    
+    '''
     ### ORIGINAL BUY ###
     if (m > 0 and 
         tradingDays[m]['SlowSto1DaySlope'] > 0 and 
@@ -165,6 +189,32 @@ for m, tradingDay in enumerate(tradingDays):
         actionToPerform = 'BUY'
     '''
     
+    
+    
+    
+    
+    
+    
+    
+    ### BOTH BUY ###
+    if (m > 0 and 
+        ( #sharp gains
+         tradingDays[m]['SlowSto1DaySlope'] > 1 and
+         tradingDays[m]['14DayRSI1DaySlope'] > 1 and 
+         tradingDays[m]['VIX1DaySlope'] < -0.5 and
+         tradingDays[m]['AD3DaySlope'] > 0
+        )
+        or
+        ( #gradual gains
+         tradingDays[m]['SlowSto1DaySlope'] > 0.4 and
+         tradingDays[m]['14DayRSI1DaySlope'] > 0.4 and 
+         tradingDays[m]['VIX1DaySlope'] < -0.3 and
+         tradingDays[m]['AD3DaySlope'] > 0 and
+         tradingDays[m]['AD5DaySlope'] > 0
+        )
+       ):
+        actionToPerform = 'BUY'
+    '''
     ### BOTH BUY ###
     if (m > 0 and 
         tradingDays[m]['SlowSto1DaySlope'] > 0.7 and
@@ -173,6 +223,12 @@ for m, tradingDay in enumerate(tradingDays):
         tradingDays[m]['AD3DaySlope'] > 0
        ):
         actionToPerform = 'BUY'
+    '''
+    
+    
+    
+    
+    
     
     '''
     ### ORIGINAL SELL ###
@@ -218,6 +274,13 @@ for m, tradingDay in enumerate(tradingDays):
         actionToPerform = 'SELL'
     '''
     
+    
+    
+    
+    
+    
+    
+    
     ### BOTH SELL ###
     if (m > 0 and 
         (
@@ -228,6 +291,7 @@ for m, tradingDay in enumerate(tradingDays):
           (
            #tradingDays[m]['AD5DaySlope'] < 0 
            #or 
+           tradingDays[m]['OBV3DaySlope'] < 0 and 
            tradingDays[m]['OBV5DaySlope'] < 0
           )
          ) 
@@ -245,6 +309,15 @@ for m, tradingDay in enumerate(tradingDays):
         )
        ):
         actionToPerform = 'SELL'
+    
+    
+    
+    
+    
+    
+    
+    
+    
         
     '''
     ### NEW SELL ###
@@ -298,15 +371,15 @@ for m, tradingDay in enumerate(tradingDays):
 
     #print(f"{tradingDay['Date']}  {'%8.2f' % tradingDay['Close']}  {'%.2e' % tradingDay['Volume']}  {'%5.2f' % tradingDay['VIXClose']}  {'%8.2f' % tradingDay['VIX1DayPercentSlope']}  {'%5.2f' % tradingDay['SlowStochastic']}  {'%8.2f' % tradingDay['SlowSto1DayPercentSlope']}  {'%9.1f' % tradingDay['SlowSto3DaySlope']}  {'%9.2e' % tradingDay['OBV']}  {'%9.2e' % tradingDay['OBV3DaySlope']}  {'%9.2e' % tradingDay['OBV5DaySlope']}  {'%9.2e' % tradingDay['AD']}  {'%9.2e' % tradingDay['AD3DaySlope']}  {'%9.2e' % tradingDay['AD5DaySlope']}  {tradingDay['Buy/Sell'].rjust(8)}")
 
-    if m % 10 == 0:
-        print("      Date     Last      Vol   VIX 1D%Slope 14DRSI 1DSlope 3DaySlope Stoch 1D%Slope 3DaySlope       OBV 3DaySlope 5DaySlope        AD 3DaySlope 5DaySlope Buy/Sell")
+    #if m % 10 == 0:
+    #    print("      Date     Last      Vol   VIX 1D%Slope 14DRSI 1DSlope 3DaySlope Stoch 1D%Slope 3DaySlope       OBV 3DaySlope 5DaySlope        AD 3DaySlope 5DaySlope Buy/Sell")
 
-    print(f"{tradingDay['Date']} {'%8.2f' % tradingDay['Close']} {'%.2e' % tradingDay['Volume']} {'%5.2f' % tradingDay['VIXClose']} {'%8.2f' % tradingDay['VIX1DayPercentSlope']} {'%6.2f' % tradingDay['14DayRSI']} {'%7.2f' % tradingDay['14DayRSI1DaySlope']} {'%9.1f' % tradingDay['14DayRSI3DaySlope']} {'%5.2f' % tradingDay['SlowStochastic']} {'%8.2f' % tradingDay['SlowSto1DayPercentSlope']} {'%9.1f' % tradingDay['SlowSto3DaySlope']} {'%9.2e' % tradingDay['OBV']} {'%9.2e' % tradingDay['OBV3DaySlope']} {'%9.2e' % tradingDay['OBV5DaySlope']} {'%9.2e' % tradingDay['AD']} {'%9.2e' % tradingDay['AD3DaySlope']} {'%9.2e' % tradingDay['AD5DaySlope']} {tradingDay['Buy/Sell'].rjust(8)}")
-
-
+    #print(f"{tradingDay['Date']} {'%8.2f' % tradingDay['Close']} {'%.2e' % tradingDay['Volume']} {'%5.2f' % tradingDay['VIXClose']} {'%8.2f' % tradingDay['VIX1DayPercentSlope']} {'%6.2f' % tradingDay['14DayRSI']} {'%7.2f' % tradingDay['14DayRSI1DaySlope']} {'%9.1f' % tradingDay['14DayRSI3DaySlope']} {'%5.2f' % tradingDay['SlowStochastic']} {'%8.2f' % tradingDay['SlowSto1DayPercentSlope']} {'%9.1f' % tradingDay['SlowSto3DaySlope']} {'%9.2e' % tradingDay['OBV']} {'%9.2e' % tradingDay['OBV3DaySlope']} {'%9.2e' % tradingDay['OBV5DaySlope']} {'%9.2e' % tradingDay['AD']} {'%9.2e' % tradingDay['AD3DaySlope']} {'%9.2e' % tradingDay['AD5DaySlope']} {tradingDay['Buy/Sell'].rjust(8)}")
 
 
-'''
+
+
+
 print('First Buy Date:' + firstBuyDate)
 print('Last Sell Date:' + lastSellDate)
 print('Total Return:' + str(totalReturn))
@@ -316,7 +389,7 @@ print('Num sells:' + str(numTransactions / 2))
 print('Num positive sells:' + str(numPositiveTransactions))
 print('Num negative sells:' + str(numTransactions / 2 - numPositiveTransactions))
 print('Percent positive sells:' + str(100 * numPositiveTransactions / (numTransactions / 2)))
-'''
+
 
 
 
