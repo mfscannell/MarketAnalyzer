@@ -2,6 +2,7 @@ from py_finance import YahooFinanceClient
 from py_finance import TechnicalAnalysis
 import Statistics
 import csv
+import math
 from statistics import mean
 
 obvBestFitNumPeriods = 5
@@ -212,6 +213,14 @@ for m, tradingDay in enumerate(tradingDays):
          tradingDays[m]['AD3DaySlope'] > 0 and
          tradingDays[m]['AD5DaySlope'] > 0
         )
+        #or
+        #( #gradual gains
+        # tradingDays[m]['SlowSto1DaySlope'] > 0.1 and
+        # tradingDays[m]['14DayRSI1DaySlope'] > 0.1 and 
+        # tradingDays[m]['VIX1DaySlope'] < -0.1 and
+        # tradingDays[m]['AD3DaySlope'] > 0 and
+        # tradingDays[m]['OBV3DaySlope'] > 0
+        #)
        ):
         actionToPerform = 'BUY'
     '''
@@ -366,20 +375,37 @@ for m, tradingDay in enumerate(tradingDays):
         
     tradingDays[m]['Buy/Sell'] = actionToPerform
     
+    tradingDays[m]['B/S/H_LinReg'] = (
+        3.31253682 * math.pow(10, -11) * tradingDays[m]['OBV3DaySlope'] + 
+        8.19779990 * math.pow(10, -13) * tradingDays[m]['OBV4DaySlope'] +
+        5.65393499 * math.pow(10, -11) * tradingDays[m]['OBV10DaySlope'] + 
+        6.43853271 * math.pow(10, -11) * tradingDays[m]['AD3DaySlope'] + 
+        1.73457490 * math.pow(10, -11) * tradingDays[m]['AD4DaySlope'] + 
+        -7.33680331 * math.pow(10, -3) * tradingDays[m]['SlowStochastic'] + 
+        1.02181899 * math.pow(10, -2) * tradingDays[m]['SlowSto1DaySlope'] + 
+        8.68687094 * math.pow(10, -3) * tradingDays[m]['SlowSto5DaySlope'] + 
+        9.35529581 * math.pow(10, -3) * tradingDays[m]['14DayRSI'] + 
+        4.47389338 * math.pow(10, -2) * tradingDays[m]['14DayRSI1DaySlope'] + 
+        -1.25856961 * math.pow(10, -2) * tradingDays[m]['VIXClose'] + 
+        -1.01310962 * math.pow(10, -2) * tradingDays[m]['VIX1DaySlope'] + 
+        -2.35393624 * math.pow(10, -2) * tradingDays[m]['VIX10DaySlope'] + 
+        1.34105788 * math.pow(10, -3) * tradingDays[m]['VIXSlowStochastic'] 
+    )
+    
     #if m % 10 == 0:
     #    print("      Date      Last       Vol    VIX  1D%Slope  Stoch  1D%Slope  3DaySlope        OBV  3DaySlope  5DaySlope         AD  3DaySlope  5DaySlope  Buy/Sell")
 
     #print(f"{tradingDay['Date']}  {'%8.2f' % tradingDay['Close']}  {'%.2e' % tradingDay['Volume']}  {'%5.2f' % tradingDay['VIXClose']}  {'%8.2f' % tradingDay['VIX1DayPercentSlope']}  {'%5.2f' % tradingDay['SlowStochastic']}  {'%8.2f' % tradingDay['SlowSto1DayPercentSlope']}  {'%9.1f' % tradingDay['SlowSto3DaySlope']}  {'%9.2e' % tradingDay['OBV']}  {'%9.2e' % tradingDay['OBV3DaySlope']}  {'%9.2e' % tradingDay['OBV5DaySlope']}  {'%9.2e' % tradingDay['AD']}  {'%9.2e' % tradingDay['AD3DaySlope']}  {'%9.2e' % tradingDay['AD5DaySlope']}  {tradingDay['Buy/Sell'].rjust(8)}")
 
-    #if m % 10 == 0:
-    #    print("      Date     Last      Vol   VIX 1D%Slope 14DRSI 1DSlope 3DaySlope Stoch 1D%Slope 3DaySlope       OBV 3DaySlope 5DaySlope        AD 3DaySlope 5DaySlope Buy/Sell")
+    if m % 10 == 0:
+        print("      Date     Last      Vol   VIX 1D%Slope 14DRSI 1DSlope 3DaySlope Stoch 1D%Slope 3DaySlope       OBV 3DaySlope 5DaySlope        AD 3DaySlope 5DaySlope  B/S BSHReg")
 
-    #print(f"{tradingDay['Date']} {'%8.2f' % tradingDay['Close']} {'%.2e' % tradingDay['Volume']} {'%5.2f' % tradingDay['VIXClose']} {'%8.2f' % tradingDay['VIX1DayPercentSlope']} {'%6.2f' % tradingDay['14DayRSI']} {'%7.2f' % tradingDay['14DayRSI1DaySlope']} {'%9.1f' % tradingDay['14DayRSI3DaySlope']} {'%5.2f' % tradingDay['SlowStochastic']} {'%8.2f' % tradingDay['SlowSto1DayPercentSlope']} {'%9.1f' % tradingDay['SlowSto3DaySlope']} {'%9.2e' % tradingDay['OBV']} {'%9.2e' % tradingDay['OBV3DaySlope']} {'%9.2e' % tradingDay['OBV5DaySlope']} {'%9.2e' % tradingDay['AD']} {'%9.2e' % tradingDay['AD3DaySlope']} {'%9.2e' % tradingDay['AD5DaySlope']} {tradingDay['Buy/Sell'].rjust(8)}")
-
-
+    print(f"{tradingDay['Date']} {'%8.2f' % tradingDay['Close']} {'%.2e' % tradingDay['Volume']} {'%5.2f' % tradingDay['VIXClose']} {'%8.2f' % tradingDay['VIX1DayPercentSlope']} {'%6.2f' % tradingDay['14DayRSI']} {'%7.2f' % tradingDay['14DayRSI1DaySlope']} {'%9.1f' % tradingDay['14DayRSI3DaySlope']} {'%5.2f' % tradingDay['SlowStochastic']} {'%8.2f' % tradingDay['SlowSto1DayPercentSlope']} {'%9.1f' % tradingDay['SlowSto3DaySlope']} {'%9.2e' % tradingDay['OBV']} {'%9.2e' % tradingDay['OBV3DaySlope']} {'%9.2e' % tradingDay['OBV5DaySlope']} {'%9.2e' % tradingDay['AD']} {'%9.2e' % tradingDay['AD3DaySlope']} {'%9.2e' % tradingDay['AD5DaySlope']} {tradingDay['Buy/Sell'].rjust(4)} {'%5.2f' % tradingDays[m]['B/S/H_LinReg']}")
 
 
 
+
+'''
 print('First Buy Date:' + firstBuyDate)
 print('Last Sell Date:' + lastSellDate)
 print('Total Return:' + str(totalReturn))
@@ -389,13 +415,13 @@ print('Num sells:' + str(numTransactions / 2))
 print('Num positive sells:' + str(numPositiveTransactions))
 print('Num negative sells:' + str(numTransactions / 2 - numPositiveTransactions))
 print('Percent positive sells:' + str(100 * numPositiveTransactions / (numTransactions / 2)))
-
+'''
 
 
 
 '''
 keys = tradingDays[0].keys()
-with open('C:/temp/flashBackup/_stocks/WithVix.csv', 'w', newline = '') as output_file:
+with open('C:/temp/flashBackup/_stocks/Today.csv', 'w', newline = '') as output_file:
     dict_writer = csv.DictWriter(output_file, keys)
     dict_writer.writeheader()
     dict_writer.writerows(tradingDays)
