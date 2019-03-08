@@ -4,6 +4,7 @@ import Statistics
 import csv
 import math
 from statistics import mean
+import datetime
 
 obvBestFitNumPeriods = 5
 
@@ -28,6 +29,14 @@ endDate = input("End date (yyyy-mm-dd):")
 
 stockClient = YahooFinanceClient.YahooFinanceClient(stockSymbol)
 tradingDays = stockClient.getHistory(startDate, endDate)
+
+now = datetime.datetime.today()
+openingBell = datetime.datetime(now.year, now.month, now.day, 8, 30)
+closingBell = datetime.datetime(now.year, now.month, now.day, 15, 00)
+
+if tradingDays[-1]['Date'] == now.strftime('%Y-%m-%d') and 0 <= now.weekday() and now.weekday() <= 4 and openingBell < now and now < closingBell:
+    print('Last date, market is open.  Using average volume.')
+    tradingDays[-1]['Volume'] = (tradingDays[-2]['Volume'] + tradingDays[-3]['Volume'] + tradingDays[-4]['Volume'] + tradingDays[-5]['Volume'] + tradingDays[-6]['Volume']) / 5
 
 vixTradingDays = []
 
@@ -55,6 +64,15 @@ for i, tradingDay in enumerate(tradingDays):
             tradingDays[i]['AD' + str(numPeriods) + 'DaySlope'] = Statistics.findBestFitSlope(tradingDays, i - (numPeriods - 1), i, 'Period', 'AD')
         else:
             tradingDays[i]['AD' + str(numPeriods) + 'DaySlope'] = 0
+
+    tradingDays[i]['PVT'] = TechnicalAnalysis.calcPriceVolumeTrend(tradingDays, i)
+    
+    # calc PVT best fit
+    for numPeriods in bestFitNumPeriods:
+        if i >= numPeriods:
+            tradingDays[i]['PVT' + str(numPeriods) + 'DaySlope'] = Statistics.findBestFitSlope(tradingDays, i - (numPeriods - 1), i, 'Period', 'PVT')
+        else:
+            tradingDays[i]['PVT' + str(numPeriods) + 'DaySlope'] = 0
 
     # calc slow stochastic
     if i >= slowStochasticNumPeriods:
@@ -129,6 +147,13 @@ for i, tradingDay in enumerate(tradingDays):
             tradingDays[i]['VIXSlowSto1DaySlope'] = tradingDays[i]['VIXSlowStochastic'] - tradingDays[i - 1]['VIXSlowStochastic']
         else:
             tradingDays[i]['VIXSlowSto1DaySlope'] = 0
+            
+        # calc Slow Stochastic best fit slopes
+        for numPeriods in bestFitNumPeriods:
+            if i >= numPeriods:
+                tradingDays[i]['VIXSlowSto' + str(numPeriods) + 'DaySlope'] = Statistics.findBestFitSlope(tradingDays, i - (numPeriods - 1), i, 'Period', 'VIXSlowStochastic')
+            else:
+                tradingDays[i]['VIXSlowSto' + str(numPeriods) + 'DaySlope'] = 0
 
 
 numTrades = 0
@@ -376,20 +401,19 @@ for m, tradingDay in enumerate(tradingDays):
     tradingDays[m]['Buy/Sell'] = actionToPerform
     
     tradingDays[m]['B/S/H_LinReg'] = (
-        3.31253682 * math.pow(10, -11) * tradingDays[m]['OBV3DaySlope'] + 
-        8.19779990 * math.pow(10, -13) * tradingDays[m]['OBV4DaySlope'] +
-        5.65393499 * math.pow(10, -11) * tradingDays[m]['OBV10DaySlope'] + 
-        6.43853271 * math.pow(10, -11) * tradingDays[m]['AD3DaySlope'] + 
-        1.73457490 * math.pow(10, -11) * tradingDays[m]['AD4DaySlope'] + 
-        -7.33680331 * math.pow(10, -3) * tradingDays[m]['SlowStochastic'] + 
-        1.02181899 * math.pow(10, -2) * tradingDays[m]['SlowSto1DaySlope'] + 
-        8.68687094 * math.pow(10, -3) * tradingDays[m]['SlowSto5DaySlope'] + 
-        9.35529581 * math.pow(10, -3) * tradingDays[m]['14DayRSI'] + 
-        4.47389338 * math.pow(10, -2) * tradingDays[m]['14DayRSI1DaySlope'] + 
-        -1.25856961 * math.pow(10, -2) * tradingDays[m]['VIXClose'] + 
-        -1.01310962 * math.pow(10, -2) * tradingDays[m]['VIX1DaySlope'] + 
-        -2.35393624 * math.pow(10, -2) * tradingDays[m]['VIX10DaySlope'] + 
-        1.34105788 * math.pow(10, -3) * tradingDays[m]['VIXSlowStochastic'] 
+        3.30502901 * math.pow(10, -11) * tradingDays[m]['OBV3DaySlope'] + 
+        1.16405834 * math.pow(10, -12) * tradingDays[m]['OBV5DaySlope'] +
+        6.23544780 * math.pow(10, -11) * tradingDays[m]['OBV10DaySlope'] + 
+        5.85123027 * math.pow(10, -11) * tradingDays[m]['AD3DaySlope'] + 
+        
+        5.74826095 * math.pow(10, -12) * tradingDays[m]['AD4DaySlope'] + 
+        8.14926192 * math.pow(10, -11) * tradingDays[m]['AD10DaySlope'] + 
+        6.31778147 * math.pow(10, -3) * tradingDays[m]['SlowSto1DaySlope'] + 
+        6.81036757 * math.pow(10, -4) * tradingDays[m]['SlowSto5DaySlope'] + 
+        
+        5.25754413 * math.pow(10, -2) * tradingDays[m]['14DayRSI1DaySlope'] +
+        9.16492316 * math.pow(10, -3) * tradingDays[m]['14DayRSI3DaySlope'] +
+        -5.54888795 * math.pow(10, -3) * tradingDays[m]['VIX1DaySlope'] 
     )
     
     #if m % 10 == 0:
@@ -398,9 +422,9 @@ for m, tradingDay in enumerate(tradingDays):
     #print(f"{tradingDay['Date']}  {'%8.2f' % tradingDay['Close']}  {'%.2e' % tradingDay['Volume']}  {'%5.2f' % tradingDay['VIXClose']}  {'%8.2f' % tradingDay['VIX1DayPercentSlope']}  {'%5.2f' % tradingDay['SlowStochastic']}  {'%8.2f' % tradingDay['SlowSto1DayPercentSlope']}  {'%9.1f' % tradingDay['SlowSto3DaySlope']}  {'%9.2e' % tradingDay['OBV']}  {'%9.2e' % tradingDay['OBV3DaySlope']}  {'%9.2e' % tradingDay['OBV5DaySlope']}  {'%9.2e' % tradingDay['AD']}  {'%9.2e' % tradingDay['AD3DaySlope']}  {'%9.2e' % tradingDay['AD5DaySlope']}  {tradingDay['Buy/Sell'].rjust(8)}")
 
     if m % 10 == 0:
-        print("      Date     Last      Vol   VIX 1D%Slope 14DRSI 1DSlope 3DaySlope Stoch 1D%Slope 3DaySlope       OBV 3DaySlope 5DaySlope        AD 3DaySlope 5DaySlope  B/S BSHReg")
+        print("     Date     Last      Vol   VIX 1D%Slope 14DRSI 1DSlope 3DaySlope Stoch 1D%Slope 3DaySlope      OBV 3DaySlope 5DaySlope        AD 3DaySlope 5DaySlope  B/S BSHReg")
 
-    print(f"{tradingDay['Date']} {'%8.2f' % tradingDay['Close']} {'%.2e' % tradingDay['Volume']} {'%5.2f' % tradingDay['VIXClose']} {'%8.2f' % tradingDay['VIX1DayPercentSlope']} {'%6.2f' % tradingDay['14DayRSI']} {'%7.2f' % tradingDay['14DayRSI1DaySlope']} {'%9.1f' % tradingDay['14DayRSI3DaySlope']} {'%5.2f' % tradingDay['SlowStochastic']} {'%8.2f' % tradingDay['SlowSto1DayPercentSlope']} {'%9.1f' % tradingDay['SlowSto3DaySlope']} {'%9.2e' % tradingDay['OBV']} {'%9.2e' % tradingDay['OBV3DaySlope']} {'%9.2e' % tradingDay['OBV5DaySlope']} {'%9.2e' % tradingDay['AD']} {'%9.2e' % tradingDay['AD3DaySlope']} {'%9.2e' % tradingDay['AD5DaySlope']} {tradingDay['Buy/Sell'].rjust(4)} {'%5.2f' % tradingDays[m]['B/S/H_LinReg']}")
+    print(f"{tradingDay['Date']} {'%7.2f' % tradingDay['Close']} {'%.2e' % tradingDay['Volume']} {'%5.2f' % tradingDay['VIXClose']} {'%8.2f' % tradingDay['VIX1DayPercentSlope']} {'%6.2f' % tradingDay['14DayRSI']} {'%7.2f' % tradingDay['14DayRSI1DaySlope']} {'%9.1f' % tradingDay['14DayRSI3DaySlope']} {'%5.2f' % tradingDay['SlowStochastic']} {'%8.2f' % tradingDay['SlowSto1DayPercentSlope']} {'%9.1f' % tradingDay['SlowSto3DaySlope']} {'%8.2e' % tradingDay['OBV']} {'%9.2e' % tradingDay['OBV3DaySlope']} {'%9.2e' % tradingDay['OBV5DaySlope']} {'%9.2e' % tradingDay['AD']} {'%9.2e' % tradingDay['AD3DaySlope']} {'%9.2e' % tradingDay['AD5DaySlope']} {tradingDay['Buy/Sell'].rjust(4)} {'%6.2f' % tradingDays[m]['B/S/H_LinReg']}")
 
 
 

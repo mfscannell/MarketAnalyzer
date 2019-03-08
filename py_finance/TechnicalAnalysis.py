@@ -23,6 +23,12 @@ def calcAccumDist(tradingDays, index):
         (tradingDays[index]['Close'] - tradingDays[index]['Low']) - (tradingDays[index]['High'] - tradingDays[index]['Close'])
         ) / (tradingDays[index]['High'] - tradingDays[index]['Low'])
 
+def calcPriceVolumeTrend(tradingDays, index):
+    if index == 0:
+        return tradingDays[index]['Volume']
+    else:
+        return tradingDays[index - 1]['PVT'] + tradingDays[index]['Volume'] * (tradingDays[index]['Close'] - tradingDays[index - 1]['Close']) / tradingDays[index - 1]['Close']
+
 def findLowestLow(tradingDaysList, start, stop, attribute = ''):
     lowestLow = 0
     
